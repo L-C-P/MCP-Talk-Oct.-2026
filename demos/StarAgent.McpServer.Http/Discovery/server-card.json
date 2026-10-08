@@ -1,0 +1,14 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/v1/server-card.schema.json",
+  "name": "local.blm2026/staragent-mcp-server-http",
+  "title": "StarAgent",
+  "version": "0.1.0",
+  "description": "AI tour manager for concerts and artists",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "http://localhost:3001/mcp",
+      "supportedProtocolVersions": ["2026-07-28", "2025-11-25"]
+    }
+  ]
+}

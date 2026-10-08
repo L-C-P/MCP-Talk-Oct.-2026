@@ -1,0 +1,10 @@
+{
+  "specVersion": "1.0",
+  "entries": [
+    {
+      "identifier": "urn:air:blm2026.local:mcp:staragent",
+      "type": "application/mcp-server-card+json",
+      "url": "http://localhost:3001/mcp/server-card"
+    }
+  ]
+}

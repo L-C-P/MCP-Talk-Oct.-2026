@@ -1,0 +1,405 @@
+/*
+ * adesso PowerPoint master (adesso-PPT-Master.potx) for Slidev.
+ *
+ * Positions are given in % of the 16:9 slide as in the master; font sizes in master points via var(--pt).
+ * Padding uses var(--slide-w) / var(--slide-h) because CSS padding percentages always refer to the width.
+ */
+
+/* ------------------------------------------------------------------------------------------------
+ * Theme colours (ppt/theme/theme1.xml) and units
+ * --------------------------------------------------------------------------------------------- */
+:root {
+  --color-primary: #006ec7; /* dk2 / tx2 */
+  --color-black: #000000; /* dk1 / tx1 */
+  --color-white: #ffffff; /* lt1 / bg1 */
+  --color-light-gray: #e7e5e3; /* lt2 */
+  --color-accent-purple: #461ebe; /* accent1 */
+  --color-accent-orange: #ff9868; /* accent2 */
+  --color-accent-taupe: #887d75; /* accent3 */
+  --color-accent-green: #76c800; /* accent4 */
+  --color-accent-pink: #f566ba; /* accent5 */
+  --color-accent-turquoise: #28dcaa; /* accent6 */
+
+  /* Slidev canvas (default canvasWidth 980, 16:9) and 1 pt of the 960 pt wide PowerPoint slide in canvas px */
+  --slide-w: 980px;
+  --slide-h: calc(980px * 9 / 16);
+  --pt: calc(980px / 960);
+}
+
+/* ------------------------------------------------------------------------------------------------
+ * Fonts: Fira Sans (body, minor font) and Fira Sans Condensed (headings, major font)
+ * --------------------------------------------------------------------------------------------- */
+@font-face {
+  font-family: 'Fira Sans';
+  src: local('Fira Sans'), local('Fira Sans Regular'), url('@/assets/fonts/FiraSans-Regular.ttf') format('truetype');
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Fira Sans';
+  src: local('Fira Sans SemiBold'), url('@/assets/fonts/FiraSans-SemiBold.ttf') format('truetype');
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Fira Sans';
+  src: local('Fira Sans Italic'), local('Fira Sans Regular Italic'), url('@/assets/fonts/FiraSans-Italic.ttf') format('truetype');
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Fira Sans Condensed';
+  src: local('Fira Sans Condensed'), local('Fira Sans Condensed Regular');
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Fira Sans Condensed';
+  src: local('Fira Sans Condensed Bold'), url('@/assets/fonts/FiraSansCondensed-Bold.ttf') format('truetype');
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Hack Nerd Font";
+  src: url("@/assets/fonts/HackNerdFontComplete-Regular.ttf") format("truetype");
+}
+
+/* ------------------------------------------------------------------------------------------------
+ * Base text styles (master txStyles)
+ * --------------------------------------------------------------------------------------------- */
+.slidev-layout {
+  background: var(--color-white);
+  color: var(--color-black);
+  font-family: 'Fira Sans', Arial, sans-serif;
+  font-weight: 400;
+}
+
+.slidev-layout :is(p, li, blockquote, table, th, td) {
+  color: var(--color-black);
+}
+
+.slidev-layout :is(h1, h2, h3, h4, h5, h6) {
+  font-family: 'Fira Sans Condensed', 'Fira Sans', Arial, sans-serif;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+/* Title: Fira Sans Condensed bold 34 pt, tx2 */
+.slidev-layout h1,
+.slidev-layout.adesso-slide h1 {
+  font-size: calc(34 * var(--pt));
+  font-weight: 700;
+  line-height: 1;
+  margin: 0;
+}
+
+.slidev-layout h1 + p {
+  opacity: 1;
+  margin-top: 0;
+}
+
+.slidev-layout h2,
+.slidev-layout h3 {
+  margin-block: .65em;
+}
+
+.slidev-layout :is(i, em) {
+  font-style: italic;
+  color: inherit;
+}
+
+.slidev-layout strong {
+  font-weight: 600;
+  color: inherit;
+}
+
+.slidev-layout a {
+  color: var(--color-primary);
+}
+
+/* Bullets: ">" in tx2 on levels 1–2, "-" on level 3 */
+.slidev-layout ul > li::marker {
+  content: '>\00a0\00a0';
+  color: var(--color-primary);
+}
+
+.slidev-layout ul ul ul > li::marker {
+  content: '-\00a0\00a0';
+}
+
+.slidev-layout ol > li::marker {
+  color: var(--color-primary);
+}
+
+.slidev-layout blockquote {
+  margin-block: 1rem;
+  border-color: var(--color-primary);
+}
+
+.slidev-layout :is(table, th, td) {
+  border-color: var(--color-primary);
+}
+
+/* ------------------------------------------------------------------------------------------------
+ * Shared slide frame and colour variants
+ * --------------------------------------------------------------------------------------------- */
+.adesso-slide {
+  position: relative;
+  overflow: hidden;
+  padding: 0;
+}
+
+.adesso-slide > img {
+  position: absolute;
+  object-fit: contain;
+}
+
+.adesso--white {
+  background: var(--color-white);
+}
+
+.adesso--blue {
+  background: var(--color-primary);
+}
+
+.adesso--gradient {
+  background: url('@/assets/Gradient.png') center / cover no-repeat;
+}
+
+.adesso--dark {
+  background: url('@/assets/Gradient_Dark.png') center / cover no-repeat;
+}
+
+:is(.adesso--blue, .adesso--gradient, .adesso--dark),
+:is(.adesso--blue, .adesso--gradient, .adesso--dark) :is(h1, h2, h3, h4, h5, h6, p, li, blockquote, td, th, a) {
+  color: var(--color-white);
+}
+
+:is(.adesso--blue, .adesso--gradient, .adesso--dark) :is(ul, ol) > li::marker {
+  color: var(--color-white);
+}
+
+/* ------------------------------------------------------------------------------------------------
+ * Title and Content / Agenda: title at x 8.7 % y 7.5 %, body from y 25.9 % to 89.9 %
+ * --------------------------------------------------------------------------------------------- */
+/*
+ * Per-slide `zoom` scales the whole slide. Frame (padding) and title are divided by the zoom factor so they keep
+ * their master size and position – only the content is scaled.
+ */
+.adesso-content {
+  padding: calc(var(--slide-h) * 0.075 / var(--slidev-slide-zoom-scale, 1)) calc(var(--slide-w) * 0.033 / var(--slidev-slide-zoom-scale, 1)) calc(var(--slide-h) * 0.101 / var(--slidev-slide-zoom-scale, 1)) calc(var(--slide-w) * 0.087 / var(--slidev-slide-zoom-scale, 1));
+}
+
+.slidev-layout.adesso-content > h1:first-of-type {
+  font-size: calc(34 * var(--pt) / var(--slidev-slide-zoom-scale, 1));
+  /* title placeholder (15.7 %) plus gap to the body placeholder at 25.9 % */
+  min-height: calc(var(--slide-h) * 0.184 / var(--slidev-slide-zoom-scale, 1));
+}
+
+/* the body starts exactly at the body placeholder */
+.adesso-content > h1:first-of-type + * {
+  margin-top: 0;
+}
+
+.adesso-title-pill {
+  left: 3.3%;
+  top: 9%;
+  width: 3.5%;
+  height: 2.9%;
+}
+
+/* Agenda: numbered, 18 pt bold, tx2 */
+.agenda .slidev-toc ol {
+  list-style: decimal;
+  padding-left: calc(var(--slide-w) * 0.0295);
+}
+
+.agenda .slidev-toc li {
+  font-size: calc(18 * var(--pt));
+  font-weight: 700;
+  margin-block: calc(2 * var(--pt));
+}
+
+.agenda .slidev-toc :is(p, a) {
+  margin: 0;
+}
+
+.agenda .slidev-toc li::marker,
+.agenda .slidev-toc a,
+.agenda .slidev-toc a p {
+  color: var(--color-primary);
+  font-weight: 700;
+  text-decoration: none;
+  border: none;
+}
+
+/* ------------------------------------------------------------------------------------------------
+ * Titleslide
+ * --------------------------------------------------------------------------------------------- */
+.cover__logo {
+  left: 81.6%;
+  top: 5.3%;
+  width: 16.2%;
+  height: 11.4%;
+}
+
+.cover__content {
+  position: absolute;
+  left: 6.3%;
+  top: 18.5%;
+  width: 67.9%;
+  display: grid;
+  grid-template-rows: calc(var(--slide-h) * 0.262) auto;
+  row-gap: calc(var(--slide-h) * 0.022);
+}
+
+.slidev-layout .cover__content h1 {
+  align-self: end;
+  font-size: calc(52 * var(--pt));
+  line-height: .85;
+}
+
+.slidev-layout .cover__content p {
+  margin: 0;
+  font-family: 'Fira Sans Condensed', 'Fira Sans', sans-serif;
+  font-size: calc(24 * var(--pt));
+  line-height: 1;
+}
+
+.slidev-layout .cover__place-date {
+  position: absolute;
+  left: 6.3%;
+  top: 93%;
+  width: 67.9%;
+  height: 3.1%;
+  margin: 0;
+  display: flex;
+  align-items: flex-end;
+  font-size: calc(9 * var(--pt));
+  line-height: 1;
+}
+
+.cover.adesso--white :is(.cover__content p, .cover__place-date) {
+  color: var(--color-primary);
+}
+
+.cover__arrow {
+  left: 89.6%;
+  top: 79.4%;
+  width: 5.9%;
+  height: 10.5%;
+}
+
+.cover__pill {
+  left: 3.3%;
+  top: 94.5%;
+  width: 1.8%;
+  height: 1.4%;
+}
+
+/* ------------------------------------------------------------------------------------------------
+ * Intro/Outro
+ * --------------------------------------------------------------------------------------------- */
+.intro__logo {
+  left: 36.9%;
+  top: 38.5%;
+  width: 26.2%;
+  height: 17.6%;
+}
+
+/* ------------------------------------------------------------------------------------------------
+ * Section Header
+ * --------------------------------------------------------------------------------------------- */
+.section__content {
+  position: absolute;
+  left: 8.7%;
+  top: 18.5%;
+  width: 72.6%;
+  display: grid;
+  grid-template-rows: calc(var(--slide-h) * 0.304) auto;
+  row-gap: calc(var(--slide-h) * 0.011);
+}
+
+.slidev-layout .section__content h1 {
+  align-self: end;
+  font-size: calc(52 * var(--pt));
+  line-height: .85;
+}
+
+.slidev-layout .section__content p {
+  margin: 0;
+  font-size: calc(46 * var(--pt));
+  line-height: 1;
+}
+
+.section.adesso--white .section__content p {
+  color: var(--color-primary);
+}
+
+.section__arrow {
+  left: 87.2%;
+  top: 69.4%;
+  width: 6.2%;
+  height: 11%;
+}
+
+/* ------------------------------------------------------------------------------------------------
+ * Blank: free area above the footer
+ * --------------------------------------------------------------------------------------------- */
+.blank {
+  /* bottom: same body limit as the content layouts (89.9 %), so content never runs into the footer; see zoom note above */
+  padding: calc(var(--slide-h) * 0.04 / var(--slidev-slide-zoom-scale, 1)) calc(var(--slide-w) * 0.033 / var(--slidev-slide-zoom-scale, 1)) calc(var(--slide-h) * 0.101 / var(--slidev-slide-zoom-scale, 1));
+}
+
+.blank.blank--center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ------------------------------------------------------------------------------------------------
+ * Contact slide
+ * --------------------------------------------------------------------------------------------- */
+.end__logo {
+  left: 81.6%;
+  top: 5.3%;
+  width: 16.2%;
+  height: 11.4%;
+}
+
+/* Title placeholder at x 8.7 % y 35.3 % w 69.1 %. Not positioned, so absolutely placed content (e.g. QR codes)
+   in the slide refers to the whole slide. */
+.end {
+  padding: calc(var(--slide-h) * 0.353) 0 0 calc(var(--slide-w) * 0.087);
+}
+
+.end__title {
+  width: 69.1%;
+}
+
+.slidev-layout .end__title h1 {
+  font-size: calc(88 * var(--pt));
+}
+
+.end__contact {
+  position: absolute;
+  left: 83.7%;
+  top: 70%;
+  width: 13%;
+  height: 19.9%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  font-size: calc(10 * var(--pt));
+}

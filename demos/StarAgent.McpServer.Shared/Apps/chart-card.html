@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>StarAgent Chart Card</title>
+    <style>
+        /* Host style variables (MCP Apps theming) with local fallbacks. */
+        :root {
+            color-scheme: light dark;
+            --card-bg: var(--color-background-primary, light-dark(#ffffff, #1e1e1e));
+            --card-bg-muted: var(--color-background-secondary, light-dark(#f4f5f7, #2a2a2a));
+            --card-border: var(--color-border-primary, light-dark(#e3e5e8, #3a3a3a));
+            --text: var(--color-text-primary, light-dark(#171717, #f2f2f2));
+            --text-muted: var(--color-text-secondary, light-dark(#5f6368, #a8a8a8));
+            --success: var(--color-text-success, light-dark(#1a7f37, #3fb950));
+            --danger: var(--color-text-danger, light-dark(#cf222e, #f85149));
+            --accent: light-dark(#216ec7, #58a6ff);
+            --gold: light-dark(#c98a00, #f5b301);
+            --radius: var(--border-radius-lg, 12px);
+            --font: var(--font-sans, "Segoe UI", system-ui, -apple-system, sans-serif);
+        }
+
+        :root[data-theme="light"] { color-scheme: light; }
+        :root[data-theme="dark"] { color-scheme: dark; }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            padding: 8px;
+            font-family: var(--font);
+            color: var(--text);
+            background: transparent;
+        }
+
+        .card {
+            max-width: 640px;
+            padding: 20px;
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            background: var(--card-bg);
+            transition: opacity 0.2s;
+        }
+
+        .card.loading { opacity: 0.5; }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .brand {
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        select {
+            padding: 6px 10px;
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            font: inherit;
+            font-size: 13px;
+            color: var(--text);
+            background: var(--card-bg-muted);
+            cursor: pointer;
+        }
+
+        .hero {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .rank {
+            min-width: 96px;
+            font-size: 64px;
+            font-weight: 800;
+            line-height: 1;
+            text-align: center;
+            color: var(--accent);
+        }
+
+        .rank.top { color: var(--gold); }
+
+        .song { min-width: 0; }
+
+        .title {
+            margin: 0;
+            font-size: 22px;
+            font-weight: 700;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .artist {
+            margin: 2px 0 0;
+            font-size: 15px;
+            color: var(--text-muted);
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin: 18px 0 14px;
+        }
+
+        .stat {
+            padding: 10px 12px;
+            border-radius: 8px;
+            background: var(--card-bg-muted);
+        }
+
+        .stat-label {
+            font-size: 11px;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        .stat-value {
+            margin-top: 2px;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .trend-up { color: var(--success); }
+        .trend-down { color: var(--danger); }
+
+        svg { display: block; width: 100%; height: auto; overflow: visible; }
+
+        .grid-line { stroke: var(--card-border); stroke-width: 1; stroke-dasharray: 3 4; }
+        .axis-label { fill: var(--text-muted); font-size: 11px; font-family: var(--font); }
+        .line { fill: none; stroke: var(--accent); stroke-width: 3; stroke-linejoin: round; stroke-linecap: round; }
+        .area { fill: var(--accent); opacity: 0.12; }
+        .dot { fill: var(--card-bg); stroke: var(--accent); stroke-width: 2; }
+        .dot.current { fill: var(--gold); stroke: var(--gold); }
+        .dot-label { fill: var(--text); font-size: 12px; font-weight: 700; font-family: var(--font); }
+
+        footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .badge {
+            padding: 1px 6px;
+            border-radius: 999px;
+            background: var(--card-bg-muted);
+        }
+
+        .message { padding: 24px 0; text-align: center; color: var(--text-muted); }
+        .message.error { color: var(--danger); }
+        [hidden] { display: none !important; }
+    </style>
+</head>
+<body>
+<main class="card" id="card">
+    <header>
+        <span class="brand">★ StarAgent Charts</span>
+        <select id="chart-select" aria-label="Chart" disabled></select>
+    </header>
+
+    <p class="message" id="message">Waiting for chart data…</p>
+
+    <section id="content" hidden>
+        <div class="hero">
+            <div class="rank" id="rank"></div>
+            <div class="song">
+                <p class="title" id="title"></p>
+                <p class="artist" id="artist"></p>
+            </div>
+        </div>
+
+        <div class="stats">
+            <div class="stat"><div class="stat-label">Peak</div><div class="stat-value" id="peak"></div></div>
+            <div class="stat"><div class="stat-label">Weeks on chart</div><div class="stat-value" id="weeks"></div></div>
+            <div class="stat"><div class="stat-label">Last week</div><div class="stat-value" id="trend"></div></div>
+        </div>
+
+        <svg id="history" viewBox="0 0 600 170" role="img" aria-label="Chart position history"></svg>
+
+        <footer>
+            <span id="source"></span>
+            <span class="badge" id="estimated" hidden>estimated</span>
+        </footer>
+    </section>
+</main>
+
+<script>
+    "use strict";
+
+    // Must match ChartDataService.KnownCharts on the server.
+    const KNOWN_CHARTS = ["Billboard Hot 100", "UK Singles Chart", "Offizielle Deutsche Charts"];
+    const SVG_NS = "http://www.w3.org/2000/svg";
+
+    const el = id => document.getElementById(id);
+    const state = { result: null };
+
+    // ---------------------------------------------------------------------------------------------
+    // Minimal MCP Apps bridge: JSON-RPC 2.0 over postMessage (no SDK, no external scripts).
+    // ---------------------------------------------------------------------------------------------
+    const pending = new Map();
+    let nextId = 1;
+
+    function request(method, params) {
+        const id = nextId++;
+        window.parent.postMessage({ jsonrpc: "2.0", id, method, params }, "*");
+        return new Promise((resolve, reject) => pending.set(id, { resolve, reject }));
+    }
+
+    function notify(method, params) {
+        window.parent.postMessage({ jsonrpc: "2.0", method, params }, "*");
+    }
+
+    function respond(id, result) {
+        window.parent.postMessage({ jsonrpc: "2.0", id, result }, "*");
+    }
+
+    window.addEventListener("message", event => {
+        if (event.source !== window.parent) return;
+
+        const message = event.data;
+        if (!message || message.jsonrpc !== "2.0") return;
+
+        // Response to one of our requests.
+        if (message.id !== undefined && !message.method) {
+            const call = pending.get(message.id);
+            if (!call) return;
+            pending.delete(message.id);
+            message.error ? call.reject(new Error(message.error.message)) : call.resolve(message.result);
+            return;
+        }
+
+        // Request from the host.
+        if (message.id !== undefined) {
+            if (message.method === "ui/resource-teardown" || message.method === "ping") {
+                respond(message.id, {});
+            } else {
+                window.parent.postMessage({ jsonrpc: "2.0", id: message.id, error: { code: -32601, message: "Method not found" } }, "*");
+            }
+            return;
+        }
+
+        // Notification from the host.
+        const params = message.params || {};
+        switch (message.method) {
+            case "ui/notifications/tool-result":
+                renderToolResult(params);
+                break;
+            case "ui/notifications/tool-cancelled":
+                showMessage("Tool call was cancelled.", true);
+                break;
+            case "ui/notifications/host-context-changed":
+                applyHostContext(params);
+                break;
+        }
+    });
+
+    async function connect() {
+        const init = await request("ui/initialize", {
+            appInfo: { name: "StarAgent Chart Card", version: "1.0.0" },
+            appCapabilities: {},
+            protocolVersion: "2026-01-26"
+        });
+
+        applyHostContext(init.hostContext || {});
+        notify("ui/notifications/initialized", {});
+
+        // Let the host size the iframe to our content.
+        new ResizeObserver(() => {
+            const rect = document.documentElement.getBoundingClientRect();
+            notify("ui/notifications/size-changed", { width: Math.ceil(rect.width), height: Math.ceil(rect.height) });
+        }).observe(document.documentElement);
+    }
+
+    function applyHostContext(context) {
+        if (context.theme) {
+            document.documentElement.dataset.theme = context.theme;
+        }
+
+        const variables = context.styles && context.styles.variables;
+        if (variables) {
+            for (const [name, value] of Object.entries(variables)) {
+                if (value) document.documentElement.style.setProperty(name, value);
+            }
+        }
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // Interaction: the view calls the server tool itself – no LLM round trip involved.
+    // ---------------------------------------------------------------------------------------------
+    el("chart-select").addEventListener("change", async event => {
+        if (!state.result) return;
+
+        el("card").classList.add("loading");
+        el("chart-select").disabled = true;
+
+        try {
+            const result = await request("tools/call", {
+                name: "get_chart_position",
+                arguments: {
+                    songTitle: state.result.songTitle,
+                    artist: state.result.artist,
+                    chart: event.target.value
+                }
+            });
+            renderToolResult(result);
+        } catch (error) {
+            showMessage(`Could not load chart: ${error.message}`, true);
+        } finally {
+            el("card").classList.remove("loading");
+            el("chart-select").disabled = false;
+        }
+    });
+
+    // ---------------------------------------------------------------------------------------------
+    // Rendering
+    // ---------------------------------------------------------------------------------------------
+    function renderToolResult(result) {
+        if (result.isError) {
+            showMessage(textOf(result) || "The tool returned an error.", true);
+            return;
+        }
+
+        let data = result.structuredContent;
+        if (!data) {
+            try {
+                data = JSON.parse(textOf(result));
+            } catch {
+                showMessage("Unexpected tool result.", true);
+                return;
+            }
+        }
+
+        state.result = data;
+        render(data);
+    }
+
+    function textOf(result) {
+        const block = (result.content || []).find(c => c.type === "text");
+        return block ? block.text : "";
+    }
+
+    function showMessage(text, isError) {
+        el("message").textContent = text;
+        el("message").classList.toggle("error", !!isError);
+        el("message").hidden = false;
+        el("content").hidden = true;
+    }
+
+    function render(data) {
+        const history = data.history && data.history.length ? data.history : [data.rank];
+        const lastWeek = history.length > 1 ? history[history.length - 2] : null;
+
+        el("rank").textContent = `#${data.rank}`;
+        el("rank").classList.toggle("top", data.rank === 1);
+        el("title").textContent = data.songTitle;
+        el("artist").textContent = data.artist;
+        el("peak").textContent = `#${data.peak}`;
+        el("weeks").textContent = data.weeks;
+        el("source").textContent = `${data.chart} · ${data.dataSource}`;
+        el("estimated").hidden = !data.isEstimated;
+
+        const trend = el("trend");
+        trend.className = "stat-value";
+        if (lastWeek === null || lastWeek === data.rank) {
+            trend.textContent = lastWeek === null ? "new" : "= steady";
+        } else if (data.rank < lastWeek) {
+            trend.textContent = `▲ ${lastWeek - data.rank}`;
+            trend.classList.add("trend-up");
+        } else {
+            trend.textContent = `▼ ${data.rank - lastWeek}`;
+            trend.classList.add("trend-down");
+        }
+
+        renderChartOptions(data.chart);
+        renderHistory(history);
+
+        el("message").hidden = true;
+        el("content").hidden = false;
+    }
+
+    function renderChartOptions(current) {
+        const select = el("chart-select");
+        const charts = KNOWN_CHARTS.includes(current) ? KNOWN_CHARTS : [current, ...KNOWN_CHARTS];
+
+        select.replaceChildren(...charts.map(chart => {
+            const option = document.createElement("option");
+            option.value = chart;
+            option.textContent = chart;
+            option.selected = chart === current;
+            return option;
+        }));
+        select.disabled = false;
+    }
+
+    function renderHistory(history) {
+        const svg = el("history");
+        const width = 600, height = 170;
+        const pad = { left: 36, right: 24, top: 22, bottom: 14 };
+        const worst = Math.max(...history);
+        const maxPos = Math.min(100, Math.max(10, Math.ceil((worst + 2) / 10) * 10));
+
+        // Rank 1 is at the top.
+        const x = i => pad.left + (history.length === 1 ? 0 : i * (width - pad.left - pad.right) / (history.length - 1));
+        const y = pos => pad.top + (pos - 1) * (height - pad.top - pad.bottom) / (maxPos - 1);
+
+        const nodes = [];
+        for (const tick of [1, Math.round(maxPos / 2), maxPos]) {
+            nodes.push(svgEl("line", { class: "grid-line", x1: pad.left, x2: width - pad.right, y1: y(tick), y2: y(tick) }));
+            nodes.push(svgEl("text", { class: "axis-label", x: pad.left - 8, y: y(tick) + 4, "text-anchor": "end" }, `#${tick}`));
+        }
+
+        const points = history.map((pos, i) => `${x(i)},${y(pos)}`);
+        nodes.push(svgEl("polygon", { class: "area", points: [`${x(0)},${y(maxPos)}`, ...points, `${x(history.length - 1)},${y(maxPos)}`].join(" ") }));
+        nodes.push(svgEl("polyline", { class: "line", points: points.join(" ") }));
+
+        history.forEach((pos, i) => {
+            const isCurrent = i === history.length - 1;
+            nodes.push(svgEl("circle", { class: isCurrent ? "dot current" : "dot", cx: x(i), cy: y(pos), r: isCurrent ? 6 : 3 }));
+        });
+
+        const last = history[history.length - 1];
+        nodes.push(svgEl("text", { class: "dot-label", x: x(history.length - 1), y: y(last) - 12, "text-anchor": "middle" }, `#${last}`));
+
+        svg.replaceChildren(...nodes);
+    }
+
+    function svgEl(name, attributes, text) {
+        const node = document.createElementNS(SVG_NS, name);
+        for (const [key, value] of Object.entries(attributes)) node.setAttribute(key, value);
+        if (text !== undefined) node.textContent = text;
+        return node;
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // Start: connect to the host, or show sample data when the file is opened directly in a browser.
+    // ---------------------------------------------------------------------------------------------
+    if (window.parent === window) {
+        render({
+            rank: 1, peak: 1, weeks: 52, chart: "Billboard Hot 100", songTitle: "Bohemian Rhapsody", artist: "Queen",
+            isEstimated: false, dataSource: "Preview data",
+            history: [36, 32, 29, 25, 22, 18, 15, 11, 8, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        });
+    } else {
+        connect().catch(error => showMessage(`Could not connect to host: ${error.message}`, true));
+    }
+</script>
+</body>
+</html>

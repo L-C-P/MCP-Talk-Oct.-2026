@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="StarAgent.McpServer.AzureFunctions/StarAgent.McpServer.AzureFunctions.csproj" />
+  <Project Path="StarAgent.McpServer.Http/StarAgent.McpServer.Http.csproj" />
+  <Project Path="StarAgent.McpServer.Shared/StarAgent.McpServer.Shared.csproj" />
+  <Project Path="StarAgent.McpServer.Stdio/StarAgent.McpServer.Stdio.csproj" />
+</Solution>

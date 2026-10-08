@@ -1,0 +1,16 @@
+/* Live selection styling for synced code blocks */
+
+::selection {
+  background: rgba(56, 139, 253, 0.35);
+}
+
+.live-code-block-selection {
+  background: rgba(56, 139, 253, 0.15);
+}
+
+.live-code-block-selection-marker {
+  position: absolute;
+  background: rgba(56, 139, 253, 0.2);
+  border-left: 2px solid rgba(56, 139, 253, 0.6);
+  pointer-events: none;
+}
