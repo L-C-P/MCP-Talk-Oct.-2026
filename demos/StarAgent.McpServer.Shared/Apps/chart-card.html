@@ -198,6 +198,9 @@
 </main>
 
 <script>
+/* @mcp-apps-sdk */
+</script>
+<script>
     "use strict";
 
     // Must match ChartDataService.KnownCharts on the server.
@@ -208,80 +211,19 @@
     const state = { result: null };
 
     // ---------------------------------------------------------------------------------------------
-    // Minimal MCP Apps bridge: JSON-RPC 2.0 over postMessage (no SDK, no external scripts).
+    // MCP Apps SDK (@modelcontextprotocol/ext-apps): JSON-RPC 2.0 over postMessage with the host.
     // ---------------------------------------------------------------------------------------------
-    const pending = new Map();
-    let nextId = 1;
+    const app = new McpApps.App({ name: "StarAgent Chart Card", version: "1.0.0" });
 
-    function request(method, params) {
-        const id = nextId++;
-        window.parent.postMessage({ jsonrpc: "2.0", id, method, params }, "*");
-        return new Promise((resolve, reject) => pending.set(id, { resolve, reject }));
-    }
-
-    function notify(method, params) {
-        window.parent.postMessage({ jsonrpc: "2.0", method, params }, "*");
-    }
-
-    function respond(id, result) {
-        window.parent.postMessage({ jsonrpc: "2.0", id, result }, "*");
-    }
-
-    window.addEventListener("message", event => {
-        if (event.source !== window.parent) return;
-
-        const message = event.data;
-        if (!message || message.jsonrpc !== "2.0") return;
-
-        // Response to one of our requests.
-        if (message.id !== undefined && !message.method) {
-            const call = pending.get(message.id);
-            if (!call) return;
-            pending.delete(message.id);
-            message.error ? call.reject(new Error(message.error.message)) : call.resolve(message.result);
-            return;
-        }
-
-        // Request from the host.
-        if (message.id !== undefined) {
-            if (message.method === "ui/resource-teardown" || message.method === "ping") {
-                respond(message.id, {});
-            } else {
-                window.parent.postMessage({ jsonrpc: "2.0", id: message.id, error: { code: -32601, message: "Method not found" } }, "*");
-            }
-            return;
-        }
-
-        // Notification from the host.
-        const params = message.params || {};
-        switch (message.method) {
-            case "ui/notifications/tool-result":
-                renderToolResult(params);
-                break;
-            case "ui/notifications/tool-cancelled":
-                showMessage("Tool call was cancelled.", true);
-                break;
-            case "ui/notifications/host-context-changed":
-                applyHostContext(params);
-                break;
-        }
-    });
+    // Register handlers before connecting, so no notification is missed.
+    app.ontoolresult = result => renderToolResult(result);
+    app.ontoolcancelled = () => showMessage("Tool call was cancelled.", true);
+    app.onhostcontextchanged = context => applyHostContext(context);
 
     async function connect() {
-        const init = await request("ui/initialize", {
-            appInfo: { name: "StarAgent Chart Card", version: "1.0.0" },
-            appCapabilities: {},
-            protocolVersion: "2026-01-26"
-        });
-
-        applyHostContext(init.hostContext || {});
-        notify("ui/notifications/initialized", {});
-
-        // Let the host size the iframe to our content.
-        new ResizeObserver(() => {
-            const rect = document.documentElement.getBoundingClientRect();
-            notify("ui/notifications/size-changed", { width: Math.ceil(rect.width), height: Math.ceil(rect.height) });
-        }).observe(document.documentElement);
+        // ui/initialize + ui/notifications/initialized; also reports size changes to the host.
+        await app.connect();
+        applyHostContext(app.getHostContext() || {});
     }
 
     function applyHostContext(context) {
@@ -307,7 +249,7 @@
         el("chart-select").disabled = true;
 
         try {
-            const result = await request("tools/call", {
+            const result = await app.callServerTool({
                 name: "get_chart_position",
                 arguments: {
                     songTitle: state.result.songTitle,

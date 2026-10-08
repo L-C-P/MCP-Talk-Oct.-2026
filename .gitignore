@@ -28,5 +28,6 @@ pnpm-debug.log*
 # .NET build output
 **/bin/
 **/obj/
+demos/publish/
 
 *.sln.DotSettings.user

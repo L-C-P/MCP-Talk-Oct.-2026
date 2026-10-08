@@ -8,6 +8,7 @@
   </PropertyGroup>
   <ItemGroup>
     <EmbeddedResource Include="Apps\chart-card.html" LogicalName="StarAgent.McpServer.Shared.Apps.chart-card.html" />
+    <EmbeddedResource Include="Apps\mcp-apps-sdk.js" LogicalName="StarAgent.McpServer.Shared.Apps.mcp-apps-sdk.js" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="ModelContextProtocol" Version="2.2.0" />
