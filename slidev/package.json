@@ -4,7 +4,6 @@
   "private": true,
   "scripts": {
     "build": "slidev build --base ./ --router-mode hash",
-    "build:subdir": "slidev build --base /mcp-talk-dotnet-demo/slidev/dist/ --router-mode hash",
     "build:live": "AUDIENCE=live slidev build --base ./ --router-mode hash",
     "dev": "slidev --open",
     "live": "AUDIENCE=live slidev --open",
