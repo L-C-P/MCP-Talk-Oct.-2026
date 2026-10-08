@@ -619,7 +619,6 @@ public static class ChartTools
 
 ---
 layout: blank
-transition: slide-left
 hideFor: live
 title: "ChartTools.cs"
 ---
@@ -628,6 +627,44 @@ title: "ChartTools.cs"
 
 <CodeBlockSync />
 <<< @/snippets/ChartTools.cs {maxHeight: '440px'}
+
+---
+layout: blank
+title: "MCP Apps: Chart Card"
+---
+
+# MCP Apps: Chart Card
+
+### One attribute turns a tool result into an interactive UI
+
+```csharp
+// ChartTools.cs – link the tool to a UI resource
+[McpServerTool(Name = "get_chart_position", UseStructuredContent = true)]
+[McpAppUi(ResourceUri = "ui://staragent/chart-card.html")]
+public static ChartResult GetChartPosition(...)
+
+// ChartCardApp.cs – the UI is just another resource: one HTML file, inline JS + SVG
+[McpServerResource(UriTemplate = "ui://staragent/chart-card.html", MimeType = McpApps.HtmlMimeType)]
+public static string GetChartCard() => LoadHtml();
+
+// Program.cs
+builder.Services.AddMcpServer()
+       // ...
+       .WithMcpApps();
+```
+
+<!--
+- Paket: `ModelContextProtocol.Extensions.Apps` – noch als experimentell markiert (Warnung MCPEXP003).
+- `[McpAppUi]` setzt `_meta.ui.resourceUri` am Tool. Der Host lädt die `ui://`-Resource (MIME-Type `text/html;profile=mcp-app`) und rendert sie in einem sandboxed iframe.
+- `UseStructuredContent = true`: Das Ergebnis kommt als `structuredContent` – die UI rendert daraus, das LLM bekommt weiterhin den Text.
+- Nach dem Laden läuft die Kommunikation ganz „normal“ per JSON-RPC 2.0 – nur über `window.parent.postMessage` (senden) und `window.addEventListener("message", …)` (empfangen) statt über stdio oder HTTP:
+  - App → Host: `ui/initialize`, dann `ui/notifications/initialized`; `tools/call` für frische Daten.
+  - Host → App: Tool-Ergebnis als `ui/notifications/tool-result`, Theme-Wechsel als `ui/notifications/host-context-changed`.
+  - Die Chart Card nutzt dafür das offizielle SDK `@modelcontextprotocol/ext-apps` (Klasse `App`: `connect()`, `callServerTool()`, `ontoolresult`, …; auch mit React-Hooks). Der Server baut es beim Ausliefern direkt ins HTML ein – kein CDN, keine CSP-Freigabe nötig.
+- Die App spricht nie direkt mit Server oder LLM, nur mit dem Host. `ui/…`-Methoden bleiben zwischen App und Host, MCP-Methoden wie `tools/call` reicht der Host an den Server weiter.
+- Was das LLM sieht: nichts vom iframe. Ergebnisse von `tools/call` aus der App bleiben in der UI. Ins Modell kommt nur, was die App ausdrücklich schickt – `ui/update-model-context` (Kontext für den nächsten Turn) oder `ui/message` (Nachricht in den Chat, löst sofort eine Antwort aus).
+- Fallback: Hosts ohne MCP Apps (z.B. Claude Code) zeigen einfach das JSON. Ein Server, jeder Host.
+-->
 
 ---
 title: Register MCP
@@ -688,44 +725,6 @@ title: "Demo: Tools"
     - MCP fragt nach den fehlenden Parametern (Elicitation)
       - Seit Spec 2026-07-28 als Multi Round-Trip Request: Der Server antwortet mit `input_required`, der Host fragt den User und wiederholt den Tool-Call mit den Antworten. Funktioniert damit auch über stateless HTTP.
     - Der Host rendert eine passende UI (sieht jedes Mal anders aus)
--->
-
----
-hideInToc: true
-title: "MCP Apps: Chart Card"
----
-
-# MCP Apps: Chart Card
-
-### One attribute turns a tool result into an interactive UI
-
-```csharp
-// ChartTools.cs – link the tool to a UI resource
-[McpServerTool(Name = "get_chart_position", UseStructuredContent = true)]
-[McpAppUi(ResourceUri = "ui://staragent/chart-card.html")]
-public static ChartResult GetChartPosition(...)
-
-// ChartCardApp.cs – the UI is just another resource: one HTML file, inline JS + SVG
-[McpServerResource(UriTemplate = "ui://staragent/chart-card.html", MimeType = McpApps.HtmlMimeType)]
-public static string GetChartCard() => LoadHtml();
-
-// Program.cs
-builder.Services.AddMcpServer()
-       // ...
-       .WithMcpApps();
-```
-
-<!--
-- Paket: `ModelContextProtocol.Extensions.Apps` – noch als experimentell markiert (Warnung MCPEXP003).
-- `[McpAppUi]` setzt `_meta.ui.resourceUri` am Tool. Der Host lädt die `ui://`-Resource (MIME-Type `text/html;profile=mcp-app`) und rendert sie in einem sandboxed iframe.
-- `UseStructuredContent = true`: Das Ergebnis kommt als `structuredContent` – die UI rendert daraus, das LLM bekommt weiterhin den Text.
-- Nach dem Laden läuft die Kommunikation ganz „normal“ per JSON-RPC 2.0 – nur über `window.parent.postMessage` (senden) und `window.addEventListener("message", …)` (empfangen) statt über stdio oder HTTP:
-  - App → Host: `ui/initialize`, dann `ui/notifications/initialized`; `tools/call` für frische Daten.
-  - Host → App: Tool-Ergebnis als `ui/notifications/tool-result`, Theme-Wechsel als `ui/notifications/host-context-changed`.
-  - Die Chart Card nutzt dafür das offizielle SDK `@modelcontextprotocol/ext-apps` (Klasse `App`: `connect()`, `callServerTool()`, `ontoolresult`, …; auch mit React-Hooks). Der Server baut es beim Ausliefern direkt ins HTML ein – kein CDN, keine CSP-Freigabe nötig.
-- Die App spricht nie direkt mit Server oder LLM, nur mit dem Host. `ui/…`-Methoden bleiben zwischen App und Host, MCP-Methoden wie `tools/call` reicht der Host an den Server weiter.
-- Was das LLM sieht: nichts vom iframe. Ergebnisse von `tools/call` aus der App bleiben in der UI. Ins Modell kommt nur, was die App ausdrücklich schickt – `ui/update-model-context` (Kontext für den nächsten Turn) oder `ui/message` (Nachricht in den Chat, löst sofort eine Antwort aus).
-- Fallback: Hosts ohne MCP Apps (z.B. Claude Code) zeigen einfach das JSON. Ein Server, jeder Host.
 -->
 
 ---

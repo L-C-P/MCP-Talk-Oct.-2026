@@ -7,6 +7,7 @@
     "build:live": "AUDIENCE=live slidev build --base ./ --router-mode hash",
     "dev": "slidev --open",
     "live": "AUDIENCE=live slidev --open",
+    "live:remote": "AUDIENCE=live slidev --remote --open",
     "export": "slidev export"
   },
   "dependencies": {
