@@ -3,7 +3,7 @@ theme: default
 title: "Behind the Scenes: MCP"
 footer:
     text: "Behind the Scenes: MCP"
-    date: "09/10/2026"
+    date: "09.10.2026"
 favicon: /favicon.svg
 author: "Denis Sowa"
 audience: all
@@ -13,7 +13,7 @@ themeConfig:
 fonts:
     sans: Fira Sans
 info: |
-    60 min · EN slides / DE spoken
+    45 min · EN slides / DE spoken
 drawings:
     persist: false
     presenterOnly: true
@@ -23,7 +23,7 @@ addons:
     - slidev-addon-animated-text
     - slidev-addon-second-screen
 transition: slide-left
-duration: 60min
+duration: 45min
 timer: countdown
 wakeLock: false
 routerMode: hash
@@ -39,12 +39,11 @@ The Director Between AI and Enterprise Data
 <!--
 - Kurz die Energie des Event-Themas aufgreifen: Heute sind wir alle Stars – und **StarAgent** managed die Tour.
 - Erwartung setzen: kein reiner Theorie-Vortrag. Am Ende läuft ein echter MCP-Server live.
-- Ziel benennen: Jede Person hier soll danach in der Lage sein, den Kommunikationsfluss zwischen LLM und MCP zu erklären – und wissen, wie sie selbst einen Server bauen kann.
+- Ziel benennen: Jede Person hier soll danach erklären können, wie Host, Client und Server bei MCP zusammenspielen – und wissen, wie sie selbst einen Server bauen kann.
 -->
 
 ---
 layout: section
-transition: slide-left
 hideInToc: true
 ---
 
@@ -55,8 +54,8 @@ BL Microsoft, Hannover
 
 ---
 layout: agenda
-transition: slide-left
 hideInToc: true
+transition: slide-up
 ---
 
 # _Today's Setlist_
@@ -65,15 +64,13 @@ hideInToc: true
 
 <!--
 - Die Präsentation gliedert sich in vier Teile:
-  - Was ist "MCP"
-  - Wie funktioniert "MCP"
-  - Wir implementieren "MCP"
+  - Warum "MCP" und was es ist
+  - Architektur und Capabilities
+  - Wir implementieren "MCP" – mit Demo
   - Ausblick
-- Auf GitHub gibt es zusätzliche Folien zur Verteifung.
 -->
 
 ---
-transition: slide-up
 section: { title: "Why MCP Matters", duration: 5m }
 ---
 
@@ -99,7 +96,39 @@ section: { title: "Why MCP Matters", duration: 5m }
 -->
 
 ---
-transition: slide-left
+hideInToc: true
+---
+
+# Why Not Just OpenAPI?
+
+### OpenAPI describes the API – MCP standardizes how a host offers it to a model
+
+|                    | OpenAPI / REST                                  | MCP                                                    |
+|--------------------|-------------------------------------------------|--------------------------------------------------------|
+| **Executes calls** | Every host builds its own glue                  | Standard MCP client in every host                      |
+| **Authentication** | Spec says _what_, not _who holds the key_       | Host handles OAuth – the token never reaches the model |
+| **Granularity**    | All endpoints, the model orchestrates the calls | Few task-level tools, logic stays in the server        |
+| **Context**        | Whole spec in the prompt                        | Curated tool list                                      |
+| **Portability**    | Import per host / framework                     | One server, every host                                 |
+| **Interaction**    | Request / response only                         | Elicitation · MCP Apps · Tasks · notifications         |
+| **Local access**   | Needs an HTTP endpoint                          | `stdio`: files, IDE, local databases                   |
+
+> Small, clean API and plain request/response? OpenAPI as a tool source is fine.
+> Several hosts, user authentication or interaction? That's where MCP pays off.
+
+<!--
+- Häufige Frage aufgreifen: „Ich gebe dem Modell doch einfach die Swagger-Datei – dann kann es die REST-API genauso nutzen?“
+- Ehrlich einordnen: Für eine kleine, sauber beschriebene API funktioniert das gut. Viele Frameworks machen aus OpenAPI direkt Tools; es gibt sogar Generatoren, die aus einer OpenAPI-Spec einen MCP-Server bauen.
+- Der Unterschied liegt nicht darin, ob das Modell die API versteht, sondern in allem drumherum:
+  - Wer führt den Aufruf aus, fängt Fehler ab, gibt Ergebnisse zurück? Ohne MCP baut das jeder Host selbst. (Die Rollen Host, Client und Server kommen gleich bei der Architektur.)
+  - Anmeldung: Die Spec sagt, dass es OAuth gibt – aber nicht, wer den Token besorgt. Bei MCP übernimmt das der Host, der Token landet nie im Kontext des Modells.
+  - Große APIs: 200 Endpunkte im Kontext, das Modell muss die Aufruffolge selbst zusammensetzen. MCP-Server bieten wenige, aufgabenbezogene Tools – z. B. `book_venue` statt fünf REST-Calls.
+  - Was REST nicht ausdrücken kann: Rückfrage beim User mitten im Call (Elicitation), UI im Chat (MCP Apps), lange Vorgänge (Tasks), Benachrichtigungen.
+- Kernsatz: MCP ersetzt REST nicht – ein MCP-Server kapselt oft genau so eine REST-API. REST ist die Schnittstelle für Programme, MCP die Schnittstelle für Modelle.
+-->
+
+---
+transition: slide-up
 ---
 
 # Useful MCP Servers
@@ -121,7 +150,7 @@ transition: slide-left
 -->
 
 ---
-transition: slide-left
+section: { title: Architecture, duration: 4m }
 ---
 
 # What Is MCP
@@ -140,7 +169,7 @@ transition: slide-left
 
 <!--
 - MCP als Protokoll einordnen, nicht als Bibliothek oder Framework.
-- JSON-RPC 2.0 hervorheben: Der MCP Client (im Host) und der Server tauschen schlicht strukturierten Text aus – dazu gleich mehr.
+- JSON-RPC 2.0 hervorheben: Der MCP Client (im Host) und der Server tauschen schlicht strukturierten Text aus.
 - Capabilities - dazu gleich mehr.
 - Spec-Stand **2026-07-28** – größte Revision seit dem Launch: MCP ist jetzt stateless. Kein `initialize`-Handshake, keine Sessions mehr; jeder Request bringt Protokollversion und Client-Capabilities in `_meta` mit. Dadurch kann jeder Request auf jeder Server-Instanz hinter einem Load Balancer landen.
 - Extensions-Framework: Tasks, MCP Apps und Server Cards sind offizielle, optionale Extensions – nicht Teil des Core-Protokolls.
@@ -150,7 +179,6 @@ transition: slide-left
 
 ---
 transition: fade
-section: { title: Architecture, duration: 6m }
 ---
 
 # MCP Architecture
@@ -177,7 +205,7 @@ flowchart LR
   - Server = Fähigkeiten-Anbieter
 - Wichtiger Punkt: Host und Server können unabhängig voneinander entwickelt werden – das ist die Stärke des Standards.
 - Der Host kann mehrere Clients gleichzeitig nutzen.
-- Diagramm erläutern: lokal über stdio (einfach, schnell, für Entwicklung), remote über HTTP (produktionstauglich, skalierbar).
+- Diagramm erläutern: lokal über stdio (einfach, schnell, für Entwicklung). Remote-Server kommen zwei Folien weiter.
 - Beispiel aus der Praxis: VS Code mit GitHub Copilot ist der Host + Client. Unser StarAgent-Server ist der MCP Server.
 -->
 
@@ -214,12 +242,11 @@ flowchart LR
   - Server = Fähigkeiten-Anbieter
 - Wichtiger Punkt: Host und Server können unabhängig voneinander entwickelt werden – das ist die Stärke des Standards.
 - Der Host kann mehrere Clients gleichzeitig nutzen.
-- Diagramm erläutern: lokal über stdio (einfach, schnell, für Entwicklung), remote über HTTP (produktionstauglich, skalierbar).
+- Diagramm erläutern: Ein Client spricht mit mehreren lokalen Servern über stdio; ein Server kann selbst externe Systeme über Web APIs anbinden.
 - Beispiel aus der Praxis: VS Code mit GitHub Copilot ist der Host + Client. Unser StarAgent-Server ist der MCP Server.
 -->
 
 ---
-transition: slide-up
 hideInToc: true
 ---
 
@@ -262,8 +289,8 @@ flowchart LR
 -->
 
 ---
-transition: slide-left
 hideInToc: true
+transition: slide-up
 ---
 
 # Architecture: Roles
@@ -273,6 +300,7 @@ hideInToc: true
 - **Host:** the AI application (IDE, agent shell, chat client)
     - Manages the LLM conversation
     - Decides which capabilities the model may use
+    - Runs the tool calls the model proposes – after policy check or user approval
 - **MCP Client:** protocol connector embedded in the host
     - Speaks MCP to one or more servers
     - Translates server capabilities into LLM-usable function definitions
@@ -285,37 +313,15 @@ hideInToc: true
   - Host = AI-App
   - Client = Protokollschicht im Host
   - Server = Fähigkeiten-Anbieter
+- Ablauf eines Tool-Calls in einem Satz: Der Host schickt die User-Frage plus Tool-Definitionen ans LLM, das LLM schlägt einen Tool-Call vor, der Host prüft und lässt ihn ggf. vom User freigeben, der Client ruft `tools/call` beim Server auf, das Ergebnis geht als neuer Kontext zurück ans LLM.
+- Kernpunkt: Das LLM ruft nie selbst etwas auf – es schlägt vor, der Host entscheidet und führt aus.
 -->
 
 ---
-transition: slide-up
-section: { title: Capabilities, duration: 4m }
+section: { title: Capabilities, duration: 3m }
 ---
 
 # Capabilities
-
-### A server primitive – plus a UI extension
-
-| Capability  | Kind                                     | StarAgent example                                                                  |
-|-------------|------------------------------------------|------------------------------------------------------------------------------------|
-| **Tool**    | Server primitive                         | `get_chart_position` and `book_venue` – executable operations                      |
-| **MCP App** | Extension (`io.modelcontextprotocol/ui`) | `ui://staragent/chart-card.html` – interactive chart card for `get_chart_position` |
-
-<!--
-- Die Semantik präzise machen:
-  - Tool = execute, registrierbares Primitive, kann Seiteneffekte haben.
-  - MCP App = UI zu einem Tool: Der Server liefert eine `ui://`-Resource (HTML), der Host rendert sie in einer Sandbox im Chat.
-- `book_venue` fragt fehlende Buchungsdaten per Elicitation nach – seit Spec 2026-07-28 als Multi Round-Trip Request (`resultType: "input_required"`, der Client wiederholt den Call mit `inputResponses`).
-- Die Chart Card ruft `get_chart_position` selbst wieder auf, wenn man den Chart wechselt – ohne Umweg über das LLM.
-- Weitere Capabilities (Resources, Prompts, …) auf der nächsten Folie im Überblick.
--->
-
----
-transition: slide-left
-hideInToc: true
----
-
-# Capabilities: Decision Guide
 
 - **Tool** → the model needs to _do_ something or fetch dynamic data
 - **Resource** → stable, readable document or data set (like a file or config)
@@ -336,7 +342,6 @@ hideInToc: true
 -->
 
 ---
-transition: slide-left
 hideInToc: true
 ---
 
@@ -368,293 +373,35 @@ hideInToc: true
 -->
 
 ---
-transition: slide-up
-section: { title: Runtime, duration: 3m }
----
-
-# Runtime: Host as Translator
-
-### The LLM never sees MCP
-
-The **host** is the AI application (Claude Code, Warp, GitHub Copilot, …).
-Its embedded **MCP client** speaks two languages: **MCP** on one side, and the **LLM's native tool format** on the
-other.
-
-```text
-MCP Server (.NET)
-    ↕  always: MCP / JSON-RPC 2.0
-MCP Client (embedded in host)
-    ↕  translated to the LLM's format:
-        Claude Code / Warp  →  Anthropic Tool Use  →  injected into system prompt
-        GitHub Copilot       →  OpenAI Function Calling
-        Gemini               →  Google Function Calling
-Host application
-    ↕  conversation and policy control
-LLM
-```
-
-The MCP server never knows which LLM or host application is on the other end.
-One server works with every MCP-compatible host – the host handles the translation.
-
-<!--
-- Kernbotschaft deutlich machen: LLM und MCP-Server sprechen **nie direkt** miteinander. Der Host ist die AI-App und bleibt die Kontrollinstanz; der eingebettete MCP Client übernimmt die Protokollschicht.
-- JSON-RPC 2.0 ist kein Hexenwerk – es sind strukturierte Textnachrichten mit `method`, `params` und `result`.
-- Auf Git folgen weitere Folien, mit detalierteren Beschreibungen.
-- Dann kommen wir zu: **Wir implementieren "MCP"**
--->
-
----
-transition: slide-left
----
-
-# Lifecycle Calls
-
-### For reference
-
-| Phase                | Call                                                                | Direction                      |
-|----------------------|---------------------------------------------------------------------|--------------------------------|
-| Discovery (optional) | `server/discover`                                                   | Client → Server                |
-| Listing              | `tools/list` · `resources/list` · `prompts/list`                    | Client → Server                |
-| Invocation           | `tools/call` · `resources/read` · `prompts/get`                     | Client → Server                |
-| Input required       | result `resultType: "input_required"` → retry with `inputResponses` | Server → Client → Server       |
-| Change notifications | `subscriptions/listen`                                              | Client opens · Server notifies |
-
-> No handshake, no session: every request carries protocol version and client capabilities in `_meta`.
-
-<!--
-- Seit Spec 2026-07-28 gibt es kein `initialize` / `notifications/initialized` mehr, und auch keine `Mcp-Session-Id`.
-- `server/discover` liefert unterstützte Protokollversionen, Capabilities und Server-Identität. Jeder Server muss es implementieren, Clients können es optional vorab aufrufen.
-- Ältere Server (2025-11-25 und früher) sprechen weiterhin den Handshake. Die SDKs fallen automatisch darauf zurück.
-- Multi Round-Trip Requests (MRTR): Braucht der Server weitere Angaben (Elicitation, früher auch Sampling/Roots), antwortet er nicht mit einer eigenen Anfrage an den Client, sondern mit einem Zwischenergebnis `resultType: "input_required"` und `inputRequests`. Der Client holt die Angaben ein und schickt den ursprünglichen Request erneut – mit `inputResponses` und ggf. dem unveränderten `requestState`. Normale Ergebnisse tragen `resultType: "complete"`.
-- `subscriptions/listen` ersetzt den HTTP-GET-Stream und `resources/subscribe`: Der Client öffnet einen langlebigen Stream und wählt die Benachrichtigungen aus (`toolsListChanged`, `resourceSubscriptions`, …); der Server schickt darüber die Änderungen.
--->
-
----
-transition: slide-up
-hideFor: live
----
-
-# It's just text – structured text
-
-### Step 1 – Host discovers tools from MCP server (JSON-RPC)
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 1,
-    "result": {
-        "resultType": "complete",
-        "ttlMs": 300000,
-        "cacheScope": "public",
-        "tools": [
-            {
-                "name": "get_chart_position",
-                "description": "Returns the chart position of a song.",
-                "inputSchema": {
-                    "type": "object",
-                    "properties": {
-                        "songTitle": {
-                            "type": "string"
-                        },
-                        "artist": {
-                            "type": "string"
-                        },
-                        "chart": {
-                            "type": "string",
-                            "default": "Billboard Hot 100"
-                        }
-                    },
-                    "required": [
-                        "songTitle",
-                        "artist"
-                    ]
-                }
-            }
-        ]
-    }
-}
-```
-
-<!--
-- Discovery-Vorgang: Der MCP Client im Host ruft die Fähigkeiten des Servers ab und übersetzt sie in Function-Definitions für das Modell.
-- Neu seit 2026-07-28: Jedes Result hat ein `resultType` (`complete` oder `input_required`). List-Ergebnisse sind cachebar: `ttlMs` ist ein Frische-Hinweis, `cacheScope` sagt, ob auch geteilte Caches/Gateways cachen dürfen. Tools sollen in stabiler Reihenfolge kommen – gut für den Prompt-Cache des LLM.
-- Highlight: Das LLM „sieht“ nur die Tool-Schemata – es weiß nicht, ob dahinter .NET, Python oder ein Toaster steckt.
--->
-
----
-transition: slide-up
-hideFor: live
 hideInToc: true
----
-
-# It's just text – structured text
-
-### Step 2 – Host passes tool schema to LLM as a callable function
-
-```json
-{
-    "type": "function",
-    "function": {
-        "name": "get_chart_position",
-        "description": "Returns the chart position of a song.",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "songTitle": {
-                    "type": "string"
-                },
-                "artist": {
-                    "type": "string"
-                },
-                "chart": {
-                    "type": "string"
-                }
-            },
-            "required": [
-                "songTitle",
-                "artist"
-            ]
-        }
-    }
-}
-```
-
-<!--
-- Highlight: Das LLM „sieht“ nur die Tool-Schemata – es weiß nicht, ob dahinter .NET, Python oder ein Toaster steckt.
--->
-
----
 transition: slide-up
-hideFor: live
-hideInToc: true
 ---
 
-# It's just text – structured text
+# Demo Capabilities
 
-### Step 3 – LLM responds with a tool call
+### A server primitive – plus a UI extension
 
-```json
-{
-    "name": "get_chart_position",
-    "arguments": {
-        "songTitle": "Bohemian Rhapsody",
-        "artist": "Queen"
-    }
-}
-```
+| Capability  | Kind                                     | StarAgent example                                                                  |
+|-------------|------------------------------------------|------------------------------------------------------------------------------------|
+| **Tool**    | Server primitive                         | `get_chart_position` and `book_venue` – executable operations                      |
+| **MCP App** | Extension (`io.modelcontextprotocol/ui`) | `ui://staragent/chart-card.html` – interactive chart card for `get_chart_position` |
 
 <!--
-- Das LLM entscheidet, ob es ein Tool aufrufen will – es gibt einfach JSON zurück. Keine Magie.
--->
-
----
-transition: slide-up
-hideFor: live
-hideInToc: true
----
-
-# It's just text – structured text
-
-### Step 4 – Host sends `tools/call` to MCP server
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 2,
-    "method": "tools/call",
-    "params": {
-        "name": "get_chart_position",
-        "arguments": {
-            "songTitle": "Bohemian Rhapsody",
-            "artist": "Queen"
-        },
-        "_meta": {
-            "io.modelcontextprotocol/protocolVersion": "2026-07-28",
-            "io.modelcontextprotocol/clientCapabilities": {}
-        }
-    }
-}
-```
-
-<!--
-- Der Host entscheidet (Policy-Check, ggf. User-Approval); der MCP Client im Host schickt dann `tools/call` an den Server.
-- Da es keine Session mehr gibt, trägt jeder Request Protokollversion und Client-Capabilities selbst in `_meta`.
-- Bei Streamable HTTP kommen zusätzlich die Header `Mcp-Method: tools/call` und `Mcp-Name: get_chart_position` dazu – Gateways können so routen, ohne den JSON-Body zu parsen.
--->
-
----
-transition: slide-left
-hideFor: live
-hideInToc: true
----
-
-# It's just text – structured text
-
-### Step 5 – MCP server returns result → host feeds it back to LLM
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 2,
-    "result": {
-        "resultType": "complete",
-        "content": [
-            {
-                "type": "text",
-                "text": "{\"rank\":1,\"peak\":1,\"weeks\":52,\"chart\":\"Billboard Hot 100\"}"
-            }
-        ]
-    }
-}
-```
-
-<!--
-- Der Server antwortet dem MCP Client; der Host reicht das Ergebnis als neuen Context an das Modell weiter.
--->
-
----
-transition: slide-up
-hideInToc: true
----
-
-# Runtime Sequence
-
-### End-to-end flow
-
-```mermaid {scale: 0.6}
-sequenceDiagram
-    actor User
-    participant Host
-    participant LLM
-    participant MCP as MCP Server
-    User ->> Host: "Where does Bohemian Rhapsody<br/>rank on the charts?"
-    Host ->> LLM: User message + available tool definitions
-    LLM -->> Host: Tool call request: get_chart_position(...)
-    Host ->> Host: Policy check / optional user approval
-    Host ->> MCP: tools/call · get_chart_position
-    MCP -->> Host: { rank: 1, peak: 1, weeks: 52 }
-    Host ->> LLM: Tool result as new context
-    LLM -->> Host: Final answer
-    Host -->> User: "Bohemian Rhapsody is No. 1 – as always."
-```
-
-<!--
-- Lifecycle-Tabelle nur kurz streifen: Diese Calls gibt es, der Host verwaltet sie automatisch. Man muss sie nicht selbst implementieren – **das SDK erledigt das**.
-- Sequenzdiagramm ist das Herzstück: Hier wird sichtbar, dass der Host die Kontrolle behält. Das LLM macht einen Vorschlag (Tool Call), aber der Host entscheidet, ob er ausgeführt wird.
-- Wichtige Botschaft: Der Host ist die Sicherheitsinstanz – nicht das LLM.
+- Die Semantik präzise machen:
+  - Tool = execute, registrierbares Primitive, kann Seiteneffekte haben.
+  - MCP App = UI zu einem Tool: Der Server liefert eine `ui://`-Resource (HTML), der Host rendert sie in einer Sandbox im Chat.
+- `book_venue` fragt fehlende Buchungsdaten per Elicitation nach – seit Spec 2026-07-28 als Multi Round-Trip Request (`resultType: "input_required"`, der Client wiederholt den Call mit `inputResponses`).
+- Die Chart Card ruft `get_chart_position` selbst wieder auf, wenn man den Chart wechselt – ohne Umweg über das LLM.
+- Die übrigen Capabilities (Resources, Prompts, …) standen in der Übersicht vorher – in der Demo zeigen wir Tools und MCP Apps.
 -->
 
 ---
 layout: section
-transition: slide-left
-hideInToc: true
-section: { title: Implementation, duration: 12m }
+section: { title: Implementation, duration: 9m }
 ---
 
 # Implementation
 
----
-transition: slide-left
 ---
 
 # .NET SDK
@@ -687,10 +434,10 @@ dotnet add package ModelContextProtocol
 
 ---
 title: "Create Project"
-transition: slide-left
 layout: blank
 variant: dark
-class: blank--center
+class: blank--fullscreen
+footer: false
 ---
 
 <Asciinema src="assets/casts/createproject.cast"/>
@@ -712,7 +459,6 @@ title: "Program.cs"
 layout: blank
 transition: none
 hideInToc: true
-showFor: live
 title: "Program.cs – Usings & Builder"
 ---
 
@@ -723,7 +469,6 @@ title: "Program.cs – Usings & Builder"
 layout: blank
 transition: none
 hideInToc: true
-showFor: live
 title: "Program.cs – Logging to stderr"
 ---
 
@@ -738,7 +483,6 @@ title: "Program.cs – Logging to stderr"
 layout: blank
 transition: none
 hideInToc: true
-showFor: live
 title: "Program.cs – MCP Services"
 ---
 
@@ -749,7 +493,6 @@ title: "Program.cs – MCP Services"
 layout: blank
 transition: none
 hideInToc: true
-showFor: live
 title: "Program.cs – AddMcpServer ()"
 ---
 
@@ -764,7 +507,6 @@ title: "Program.cs – AddMcpServer ()"
 layout: blank
 transition: none
 hideInToc: true
-showFor: live
 title: "Program.cs – stdio Transport"
 ---
 
@@ -779,7 +521,6 @@ title: "Program.cs – stdio Transport"
 layout: blank
 transition: none
 hideInToc: true
-showFor: live
 title: "Program.cs – Register Capabilities"
 ---
 
@@ -794,9 +535,7 @@ title: "Program.cs – Register Capabilities"
 
 ---
 layout: blank
-transition: slide-left
 hideInToc: true
-showFor: live
 title: "Program.cs – Build & Run"
 ---
 
@@ -808,40 +547,11 @@ title: "Program.cs – Build & Run"
 -->
 
 ---
-layout: blank
-transition: none
 hideInToc: true
-hideFor: live
-title: "Program.cs"
----
-
-> // Program.cs
-> <<< @/snippets/Program.cs {7-8,12-16}
-
----
-transition: slide-left
-title: "Demo Capabilities"
----
-
-### Demo capabilities
-
-- Tool: `get_chart_position, book_venue`
-- Resource: `rider://artist/{name}`
-- Prompt: `concert_press_release`
-- MCP App: `ui://staragent/chart-card.html` – chart card for `get_chart_position`
-
-<!--
-- Drei Klassen nacheinander implementieren.
-- Punchline: „Bohemian Rhapsody ist #1 – wie immer“ – ist unser Mock-Verhalten für die Demo. Kommt gleich live.
-- book_venue nutzt elicitation.
--->
-
----
-hideInToc: true
-transition: slide-left
 layout: blank
 variant: dark
-class: blank--center
+class: blank--fullscreen
+footer: false
 title: "Project Structure"
 ---
 
@@ -849,12 +559,11 @@ title: "Project Structure"
 
 <!--
 - Kurz die Magie der Demo erklären: Ich habe da schonmal etwas vorbereitet…
-- **Überleitung:** Schauen wir uns die Projektstruktur an – drei Klassen für Tools, Resources und Prompts. Alle sind komplett leer – wir füllen sie gleich live.
+- **Überleitung:** Schauen wir uns die Projektstruktur an – die Tool-Klasse `ChartTools` ist noch leer, wir füllen sie gleich live.
 -->
 
 ---
 layout: blank
-transition: slide-left
 showFor: live
 title: "ChartTools.cs"
 ---
@@ -908,79 +617,8 @@ title: "ChartTools.cs"
 <<< @/snippets/ChartTools.cs {maxHeight: '440px'}
 
 ---
-layout: blank
-transition: slide-left
-showFor: live
-title: "RiderResources.cs"
----
-
-> // RiderResources.cs
-
-<MonacoSync />
-```csharp {monaco}  {height:'460px'}
-using ModelContextProtocol.Server;
-using StarAgent.McpServer.Shared.Models;
-using StarAgent.McpServer.Shared.Services;
-using System.ComponentModel;
-
-[McpServerResourceType]
-public static class RiderResources
-{
-
-}
-
-```
-
-<!--
-```
-    [McpServerResource(
-        UriTemplate = "rider://artist/{name}",
-        Name = "artist_rider",
-        MimeType = "application/json")]
-    [Description("Returns the backstage rider for an artist.")]
-    public static string GetRider(
-        [Description("Artist slug")] string name)
-    {
-        return RiderDataService.Load(name);
-    }
-```
-
-- **Hinweis:** MCP unterstützt Resource Subscriptions, wenn der Server sie anbietet; der Host kann dann über Änderungen benachrichtigt werden. Seit Spec 2026-07-28 läuft das über `subscriptions/listen` statt `resources/subscribe`.
-- Inzwischen gibt es auch Resource Links
--->
-
----
-layout: blank
-transition: slide-left
-hideFor: live
-title: "RiderResources.cs"
----
-
-> // RiderResources.cs
-
-<<< @/snippets/RiderResources.cs {maxHeight: '440px'}
-
----
-layout: blank
-transition: slide-left
-title: "PressReleasePrompts.cs"
----
-
-> // PressReleasePrompts.cs
-
-<CodeBlockSync />
-<<< @/snippets/PressReleasePrompts.cs {maxHeight: '440px'}
-
-<!--
-- Prompt klar von Tool abgrenzen: Der Prompt wird nicht ausgeführt und hat keine Seiteneffekte.
-- Der Server liefert ein wiederverwendbares Prompt-Template als Prompt Messages zurück.
-- Der Host ruft den Prompt ab und gibt die resultierenden Messages an das LLM weiter; der MCP-Server ruft das LLM nicht selbst auf.
-- StarAgent-Bezug: `concert_press_release` standardisiert die Dramaturgie für die Tour-Ankündigung.
--->
-
----
 title: Register MCP
-transition: slide-left
+transition: slide-up
 ---
 
 # Register: stdio
@@ -1009,7 +647,6 @@ transition: slide-left
 
 ---
 layout: section
-transition: slide-left
 section: { title: Demo, duration: 7m }
 ---
 
@@ -1021,10 +658,10 @@ section: { title: Demo, duration: 7m }
 -->
 
 ---
-transition: slide-left
 layout: blank
 variant: dark
-class: blank--center
+class: blank--fullscreen
+footer: false
 hideInToc: true
 title: "Demo: Tools"
 ---
@@ -1037,47 +674,10 @@ title: "Demo: Tools"
     - Nur Queen und 5000 Personen angeben
     - MCP fragt nach den fehlenden Parametern (Elicitation)
       - Seit Spec 2026-07-28 als Multi Round-Trip Request: Der Server antwortet mit `input_required`, der Host fragt den User und wiederholt den Tool-Call mit den Antworten. Funktioniert damit auch über stateless HTTP.
-    - Der Host rendert eine passenden UI (sieht jedes mal anders aus)
+    - Der Host rendert eine passende UI (sieht jedes Mal anders aus)
 -->
 
 ---
-transition: slide-left
-layout: blank
-variant: dark
-class: blank--center
-hideInToc: true
-title: "Demo: Resources"
-hide: true
----
-
-<Asciinema src="assets/casts/mcp_resources.cast" />
-
-<!--
-- Zeig mir das Backstage-Rider für Van Halen
-- Rider-Punchline: Van Halen öffnen → „Absolutely NO brown M&Ms" live im Chat auftauchen lassen. 🤘
--->
-
----
-transition: slide-left
-layout: blank
-variant: dark
-class: blank--center
-hideInToc: true
-title: "Demo: Prompt"
-hide: true
----
-
-<Asciinema src="assets/casts/mcp_prompt.cast" />
-
-<!--
-- **Wichtig:** Der Prompt wird vom Host ausgeführt. Das Ergebnis wird dann an das LLM übergeben. 
-- /mcp__StarAgent__concert_press_release Queen Metronom_Theater_Oberhausen 26.06.2026 The_show_must_go_on!
-    - Claude parst "..." und "..." nicht.
-    - https://github.com/anthropics/claude-code/issues/70284
--->
-
----
-transition: slide-left
 hideInToc: true
 title: "MCP Apps: Chart Card"
 ---
@@ -1106,31 +706,37 @@ builder.Services.AddMcpServer()
 - Paket: `ModelContextProtocol.Extensions.Apps` – noch als experimentell markiert (Warnung MCPEXP003).
 - `[McpAppUi]` setzt `_meta.ui.resourceUri` am Tool. Der Host lädt die `ui://`-Resource (MIME-Type `text/html;profile=mcp-app`) und rendert sie in einem sandboxed iframe.
 - `UseStructuredContent = true`: Das Ergebnis kommt als `structuredContent` – die UI rendert daraus, das LLM bekommt weiterhin den Text.
-- Die UI spricht per `postMessage` JSON-RPC mit dem Host: `ui/initialize`, dann bekommt sie das Tool-Ergebnis als `ui/notifications/tool-result`.
+- Nach dem Laden läuft die Kommunikation ganz „normal“ per JSON-RPC 2.0 – nur über `window.parent.postMessage` (senden) und `window.addEventListener("message", …)` (empfangen) statt über stdio oder HTTP:
+  - App → Host: `ui/initialize`, dann `ui/notifications/initialized`; `tools/call` für frische Daten.
+  - Host → App: Tool-Ergebnis als `ui/notifications/tool-result`, Theme-Wechsel als `ui/notifications/host-context-changed`.
+  - Die Chart Card nutzt dafür das offizielle SDK `@modelcontextprotocol/ext-apps` (Klasse `App`: `connect()`, `callServerTool()`, `ontoolresult`, …; auch mit React-Hooks). Der Server baut es beim Ausliefern direkt ins HTML ein – kein CDN, keine CSP-Freigabe nötig.
+- Die App spricht nie direkt mit Server oder LLM, nur mit dem Host. `ui/…`-Methoden bleiben zwischen App und Host, MCP-Methoden wie `tools/call` reicht der Host an den Server weiter.
+- Was das LLM sieht: nichts vom iframe. Ergebnisse von `tools/call` aus der App bleiben in der UI. Ins Modell kommt nur, was die App ausdrücklich schickt – `ui/update-model-context` (Kontext für den nächsten Turn) oder `ui/message` (Nachricht in den Chat, löst sofort eine Antwort aus).
 - Fallback: Hosts ohne MCP Apps (z.B. Claude Code) zeigen einfach das JSON. Ein Server, jeder Host.
 -->
 
 ---
-transition: slide-left
 layout: blank
-class: blank--center
+variant: dark
+class: blank--fullscreen
+footer: false
 hideInToc: true
 title: "Demo: MCP Apps"
 ---
 
-<img src="/assets/ChartCard.png" alt="StarAgent chart card rendered as MCP App" class="h-100 rounded-xl shadow-xl">
+<SlidevVideo autoplay autoreset="slide" poster="/assets/ChartCard.png">
+  <source :src="'/assets/mcp-app.mp4'" type="video/mp4" />
+</SlidevVideo>
 
 <!--
 - Host: **Claude Desktop** – Claude Code (Terminal) rendert keine MCP Apps. Derselbe stdio-Server, nur ein anderer Host.
-- Frage: „Wo steht Bohemian Rhapsody von Queen in den Charts?“ → statt JSON erscheint die Chart Card im Chat.
-- Highlight: Dropdown auf „Offizielle Deutsche Charts“ umstellen. Die UI ruft `get_chart_position` **selbst** auf (`tools/call` über den Host) – ganz ohne LLM-Runde. Ergebnis: #2.
+- Aufgezeichnetes Video (ca. 30 s), startet automatisch mit der Folie.
+- Im Video: Frage „Wo steht Bohemian Rhapsody von Queen in den Charts?“ → statt JSON erscheint die Chart Card im Chat.
+- Highlight im Video: Das Dropdown wird auf „Offizielle Deutsche Charts“ umgestellt. Die UI ruft `get_chart_position` **selbst** auf (`tools/call` über den Host) – ganz ohne LLM-Runde. Ergebnis: #2.
 - Botschaft: Daten fließen in beide Richtungen – die App ist kein Bild, sondern ein kleiner MCP-Client im Chat.
 - Unterstützte Hosts: Claude (Web/Desktop), VS Code GitHub Copilot, M365 Copilot, ChatGPT, Cursor, Goose, …
 -->
 
----
-transition: slide-left
-section: { title: "Deployment Options", duration: 4m }
 ---
 
 # Debugging Tip
@@ -1148,32 +754,10 @@ section: { title: "Deployment Options", duration: 4m }
     - Tasks
     - Apps
     - Usw.
-
-Zu einigen Punkten (z.B. Apps) wird Lukas Beerschwinger noch einen Talk in der Brownbacksession halten.
 -->
 
 ---
-transition: slide-left
----
-
-# Host-side: discover and invoke
-
-```csharp
-await using var client = await McpClient.CreateAsync(transport);
-
-var tools  = await client.ListToolsAsync();
-var result = await client.CallToolAsync("get_chart_position",
-    new { songTitle = "Bohemian Rhapsody", artist = "Queen" });
-```
-
-<!--
-- Das SDK kann MCP-Server auch nutzen: Host-Seite zeigen: ListToolsAsync gibt die Discovery zurück, CallToolAsync führt aus. Genau das, was wir als JSON-RPC gesehen haben – jetzt als typisierter .NET-Aufruf.
-- SDK v2: `CreateAsync` probiert zuerst `server/discover` und fällt bei älteren Servern automatisch auf den alten Handshake zurück.
-- Braucht ein Tool Rückfragen (Elicitation via MRTR), registriert man einen `ElicitationHandler` in den Client-Optionen – `CallToolAsync` erledigt die zusätzlichen Runden dann selbst.
--->
-
----
-transition: slide-left
+section: { title: "Deployment Options", duration: 3m }
 ---
 
 # HTTP Transport: Reference
@@ -1221,7 +805,6 @@ await app.RunAsync("http://localhost:3001");
 -->
 
 ---
-transition: slide-left
 hideInToc: true
 ---
 
@@ -1242,8 +825,6 @@ hideInToc: true
 }
 ```
 
----
-transition: slide-up
 ---
 
 # Azure Function: Reference
@@ -1281,8 +862,8 @@ await builder.Build().RunAsync();
 -->
 
 ---
-transition: slide-left
 hideInToc: true
+transition: slide-up
 ---
 
 # Azure Function
@@ -1306,15 +887,13 @@ public ChartResult GetChartPosition([McpToolTrigger("get_chart_position", "Retur
 
 ---
 layout: section
-transition: slide-left
-hideInToc: true
-section: { title: Outlook, duration: 5m }
+section: { title: Outlook, duration: 6m }
 ---
 
 # Outlook
 
 ---
-transition: slide-up
+hideInToc: true
 ---
 
 # Auto-Discovery
@@ -1357,7 +936,6 @@ transition: slide-up
 -->
 
 ---
-transition: slide-up
 hideInToc: true
 ---
 
@@ -1379,7 +957,6 @@ flowchart LR
 -->
 
 ---
-transition: slide-left
 hideInToc: true
 title: "MCP Ecosystem"
 ---
@@ -1389,46 +966,7 @@ title: "MCP Ecosystem"
 <img src="/assets/ecosystem-diagram.svg" alt="Ecosystem Diagram" class = "h-100">
 
 ---
-transition: slide-left
----
-
-# A2UI - A Protocol for Agent-Driven Interfaces
-
-> https://a2ui.org
-
-**Problem:** How can AI agents safely send rich UIs across trust boundaries?
-
-**Solution:** Agents send declarative JSON → clients render with native widgets
-
-```json
-  {
-    "type": "button",
-    "label": "Search",
-    "onTap": {
-        "actionId": "search"
-    }
-}
-```
-
-- **Secure** — declarative data, not code; only pre-approved components
-- **LLM-friendly** — easy to generate, stream, and update
-- **Framework-agnostic** — same payload for Angular, Flutter, React, …
-- **MCP-ready** — delivers UI via tool responses and resources
-
-<!--
-- A2UI ist von Google gestartet, Apache 2.0, mit Contributions von CopilotKit.
-- A2UI ist kein MCP-Core-Feature, sondern ein ergänzender UI-Ansatz für agentengetriebene Interfaces.
-- Abgrenzung zu **MCP Apps**: MCP Apps ist seit Januar 2026 die offizielle MCP-Extension für UI – der Server liefert HTML, das der Host in einer Sandbox (iframe) rendert. Läuft bereits in Claude, ChatGPT, VS Code und Goose. A2UI geht den anderen Weg: deklaratives JSON statt HTML, gerendert mit nativen Widgets.
-- MCP-ready bedeutet hier: Solche UI-Payloads können über Tool Responses oder Resources transportiert werden, aber MCP selbst definiert nicht den UI-Komponentenkatalog.
-- Wichtig: Der Agent darf nur Komponenten aus einem vorab definierten Katalog verwenden – keine UI-Injection. **button** ist eine von vielen Komponenten aus einem Katalog,
-- Beispiel: Agent schickt JSON mit "text-field" und "button" – der Client rendert das mit seinen eigenen nativen Widgets.
-- Transport ist flexibel: A2A, AG-UI, oder jedes andere Protokoll das JSON tragen kann.
-- Use Cases: Dynamische Formulare, Remote Sub-Agenten die UI zurückliefern, adaptive Dashboards.
-- MIME-Type: application/a2ui+json
--->
-
----
-transition: slide-left
+hideInToc: true
 ---
 
 # Key Takeaways
@@ -1440,7 +978,7 @@ transition: slide-left
 - **The host is the control layer** – the LLM proposes, the host decides
 - **Transport is a deployment decision** – stdio locally, HTTP remotely, Functions serverlessly
 - **Auto-discovery is here** – `/.well-known/ai-catalog.json` → server cards, plus central registries
-- **UI is here** – MCP Apps in Claude, ChatGPT, VS Code · declarative alternative: `a2ui.org`
+- **UI is here** – MCP Apps in Claude, ChatGPT, VS Code, Goose, …
 - **Start small:** one tool · one server · connect to your host
 
 <!--
@@ -1450,7 +988,8 @@ transition: slide-left
 -->
 
 ---
-transition: slide-left
+transition: slide-up
+hideInToc: true
 ---
 
 # Where to go next
@@ -1472,15 +1011,14 @@ transition: slide-left
 
 ---
 layout: section
-transition: slide-left
 hideInToc: true
-section: { title: "Q&A", duration: 11m, buffer: true }
+transition: slide-up
+section: { title: "Q&A", duration: 5m, buffer: true }
 ---
 
 # Q&A
 
 ---
-transition: slide-up
 hideInToc: true
 title: "Thank you"
 layout: end
@@ -1489,17 +1027,17 @@ section: { title: "Bye", duration: 1m }
 
 <animated-text text-white :style="{ fontSize: 'calc(88 * var(--pt))' }" text="Thank you!" />
 
-<img src="@/assets/QR.svg" alt="https://github.com/L-C-P/MCP-Talk-Oct.-2026" class="absolute right-16 top-64 w-80">
+<img src="@/assets/QR.svg" alt="https://github.com/L-C-P/MCP-Talk-Oct.-2026" class="absolute right-16 top-56 w-80">
 
 <!--
 - Demo-Repo oder Slides-Link zum Nachschlagen kommunizieren.
 -->
 
 ---
-zoom: 1.7
 layout: blank
 variant: dark
-class: blank--center
+class: blank--fullscreen
+footer: false
 hideFor: live
 hideInToc: true
 title: "Bonus"

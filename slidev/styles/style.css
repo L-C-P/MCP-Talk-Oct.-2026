@@ -368,6 +368,36 @@
   justify-content: center;
 }
 
+/* Full slide without frame for the asciinema player or a video: combine with `footer: false` on the slide. The player
+   then scales to the slide (`fit: 'both'`, see components/Asciinema.vue); the background matches its terminal, so the
+   letterbox around it is invisible. */
+.blank.blank--fullscreen {
+  padding: 0;
+  background: rgb(18 19 20);
+}
+
+.blank--fullscreen > :only-child {
+  width: 100%;
+  height: 100%;
+}
+
+.blank--fullscreen .ap-wrapper {
+  align-items: center;
+}
+
+.blank--fullscreen .ap-player {
+  border-radius: 0;
+}
+
+/* Videos (<SlidevVideo>) keep their aspect ratio inside the full slide, letterboxed in black */
+.blank.blank--fullscreen:has(> video) {
+  background: black;
+}
+
+.blank--fullscreen video {
+  object-fit: contain;
+}
+
 /* ------------------------------------------------------------------------------------------------
  * Contact slide
  * --------------------------------------------------------------------------------------------- */

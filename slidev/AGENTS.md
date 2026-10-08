@@ -13,7 +13,7 @@ Guidance for agents working on the Slidev deck in this directory.
 - Styling: `styles/style.css` (imported via `style.css`)
 - Layout variants: `layoutHelper.ts`
 - Footer: `slide-top.vue`
-- Mermaid colours: `styles/theme.ts` (used by `setup/mermaid.ts`)
+- Mermaid setup: `setup/mermaid.ts` (built-in `neutral` theme)
 - App setup hooks: `setup/main.ts`
 
 ## Design system (adesso PowerPoint master)
@@ -31,6 +31,7 @@ master points via `var(--pt)`, colours are the master theme colours (`--color-pr
 | `end` | Contact slide | – |
 
 - `class: blank--center` centres the content of a `blank` slide (used for terminal casts and images).
+- `class: blank--fullscreen` shows a single element (the asciinema player or a `<SlidevVideo>`) on the whole slide without frame; use it with `footer: false`. The `Asciinema` component then scales the player to the slide (`fit: 'both'`) on its own.
 - `cover` shows "Place | Date" at the bottom: `place:` in the slide frontmatter plus `footer.date` from the headmatter.
 - Graphics from the master live in `assets/` (logos, arrows, pills, gradients).
 

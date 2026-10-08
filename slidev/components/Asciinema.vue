@@ -230,14 +230,35 @@ const onFocusIn = () => {
   requestAnimationFrame(blurFocusedPlayerElement);
 };
 
-onMounted(() => {
+let unmounted = false;
+
+// The player measures the character size once on creation. If the terminal font is still loading, it measures the
+// fallback font and the text overflows the fitted player later – so wait for the font first.
+async function waitForTerminalFont() {
+  const fontFamily = mergedPlayerProps.value.terminalFontFamily;
+  if (!fontFamily || typeof document === 'undefined' || !document.fonts) return;
+
+  try {
+    await document.fonts.load(`15px "${fontFamily}"`);
+  } catch {
+    // Font could not be loaded: the player falls back to its default font.
+  }
+}
+
+onMounted(async () => {
   const target = playerContainer.value;
   if (!(target instanceof HTMLElement)) return;
+
+  await waitForTerminalFont();
+  if (unmounted) return;
+
+  // On a `blank--fullscreen` slide the player fills the whole slide unless `fit` is set explicitly.
+  const fullscreen = target.closest('.blank--fullscreen') !== null && props.props.fit === undefined;
 
   player.value = AsciinemaPlayer.create(
     props.src,
     target,
-    mergedPlayerProps.value
+    fullscreen ? {...mergedPlayerProps.value, fit: 'both'} : mergedPlayerProps.value
   );
 
   // TEMPORARY: built-in sync disabled.
@@ -291,6 +312,8 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+  unmounted = true;
+
   if (playDelayHandler.value) {
     clearTimeout(playDelayHandler.value);
     playDelayHandler.value = null;
