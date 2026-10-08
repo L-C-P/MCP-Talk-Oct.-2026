@@ -411,13 +411,13 @@ transition: slide-left
 
 ### For reference
 
-| Phase                | Call                                                                   | Direction                          |
-|----------------------|------------------------------------------------------------------------|------------------------------------|
-| Discovery (optional) | `server/discover`                                                      | Client → Server                    |
-| Listing              | `tools/list` · `resources/list` · `prompts/list`                       | Client → Server                    |
-| Invocation           | `tools/call` · `resources/read` · `prompts/get`                        | Client → Server                    |
-| Input required       | result `resultType: "input_required"` → retry with `inputResponses`    | Server → Client → Server           |
-| Change notifications | `subscriptions/listen`                                                 | Client opens · Server notifies     |
+| Phase                | Call                                                                | Direction                      |
+|----------------------|---------------------------------------------------------------------|--------------------------------|
+| Discovery (optional) | `server/discover`                                                   | Client → Server                |
+| Listing              | `tools/list` · `resources/list` · `prompts/list`                    | Client → Server                |
+| Invocation           | `tools/call` · `resources/read` · `prompts/get`                     | Client → Server                |
+| Input required       | result `resultType: "input_required"` → retry with `inputResponses` | Server → Client → Server       |
+| Change notifications | `subscriptions/listen`                                              | Client opens · Server notifies |
 
 > No handshake, no session: every request carries protocol version and client capabilities in `_meta`.
 
@@ -1489,7 +1489,7 @@ section: { title: "Bye", duration: 1m }
 
 <animated-text text-white :style="{ fontSize: 'calc(88 * var(--pt))' }" text="Thank you!" />
 
-<img src="@/assets/QR.svg" alt="https://github.com/L-C-P/mcp-talk-dotnet-demo" class="absolute right-16 top-64 w-80">
+<img src="@/assets/QR.svg" alt="https://github.com/L-C-P/MCP-Talk-Oct.-2026" class="absolute right-16 top-64 w-80">
 
 <!--
 - Demo-Repo oder Slides-Link zum Nachschlagen kommunizieren.
