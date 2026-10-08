@@ -22,14 +22,25 @@ addons:
     - slidev-addon-timing-bar
     - slidev-addon-animated-text
     - slidev-addon-second-screen
+    - slidev-addon-obs
+obs:
+    host: 192.168.178.190
+    port: 4444
+    version: 4
 transition: slide-left
 duration: 45min
 timer: countdown
 wakeLock: false
 routerMode: hash
-layout: cover
 hideInToc: true
 section: { title: Welcome, duration: 2m }
+layout: intro
+obsScene: Scene1
+---
+
+---
+layout: cover
+obsScene: Scene2
 ---
 
 # Behind the Scenes: MCP
@@ -72,6 +83,8 @@ transition: slide-up
 
 ---
 section: { title: "Why MCP Matters", duration: 5m }
+obsScene: Scene5
+obsSceneDelay: 5s
 ---
 
 # Why MCP Matters
