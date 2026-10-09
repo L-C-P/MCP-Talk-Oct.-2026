@@ -590,6 +590,7 @@ title: "Project Structure"
 layout: blank
 showFor: live
 title: "ChartTools.cs"
+hideInToc: true
 obsScene: Scene5
 obsSceneDelay: 10s
 ---
