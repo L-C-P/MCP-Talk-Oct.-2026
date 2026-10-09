@@ -758,7 +758,6 @@ footer: false
 hideInToc: true
 title: "Demo: MCP Apps"
 obsScene: Scene5
-obsSceneDelay: 15s
 ---
 
 <SlidevVideo autoplay autoreset="slide" poster="/assets/ChartCard.png">
