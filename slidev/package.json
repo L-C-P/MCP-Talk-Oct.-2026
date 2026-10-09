@@ -15,7 +15,7 @@
     "@slidev/theme-seriph": "latest",
     "asciinema-player": "^3.15.1",
     "slidev-addon-animated-text": "^0.4.0",
-    "slidev-addon-audience-filter": "^1.1.0",
+    "slidev-addon-audience-filter": "^1.2.0",
     "slidev-addon-autofit": "^1.0.2",
     "slidev-addon-obs": "^1.0.1",
     "slidev-addon-second-screen": "^1.0.1",
