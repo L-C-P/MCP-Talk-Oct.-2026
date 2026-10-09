@@ -18,6 +18,7 @@ drawings:
     persist: false
     presenterOnly: true
 addons:
+    - slidev-addon-audience-filter
     - slidev-addon-autofit
     - slidev-addon-timing-bar
     - slidev-addon-animated-text
