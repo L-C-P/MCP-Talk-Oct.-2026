@@ -110,6 +110,8 @@ obsSceneDelay: 5s
 
 ---
 hideInToc: true
+obsScene: Scene2
+obsSceneDelay: 30s
 ---
 
 # Why Not Just OpenAPI?
@@ -192,11 +194,12 @@ section: { title: Architecture, duration: 4m }
 
 ---
 transition: fade
+obsScene: Scene5
 ---
 
 # MCP Architecture
 
-```mermaid {scale: 0.65}
+```mermaid
 flowchart LR
     subgraph YC["Your Machine"]
         direction LR
@@ -229,7 +232,7 @@ hideInToc: true
 
 # Architecture: Multiple Servers
 
-```mermaid {scale: 0.65}
+```mermaid
 flowchart LR
     subgraph YC["Your Machine"]
         H["Host<br/>(IDE / Agent Shell)"]
@@ -265,7 +268,7 @@ hideInToc: true
 
 # Architecture: Local + Remote
 
-```mermaid {scale: 0.65}
+```mermaid
 flowchart LR
     subgraph YC["Your Machine"]
         H["Host<br/>(IDE / Agent Shell)"]
@@ -304,6 +307,7 @@ flowchart LR
 ---
 hideInToc: true
 transition: slide-up
+obsScene: Scene2
 ---
 
 # Architecture: Roles
@@ -332,6 +336,8 @@ transition: slide-up
 
 ---
 section: { title: Capabilities, duration: 3m }
+obsScene: Scene5
+obsSceneDelay: 10s
 ---
 
 # Capabilities
@@ -411,10 +417,14 @@ transition: slide-up
 ---
 layout: section
 section: { title: Implementation, duration: 9m }
+obsScene: Scene5
 ---
 
 # Implementation
 
+---
+obsScene: Scene2
+obsSceneDelay: 15s
 ---
 
 # .NET SDK
@@ -571,7 +581,7 @@ title: "Project Structure"
 <Asciinema src="assets/casts/projectstructure.cast"/>
 
 <!--
-- Kurz die Magie der Demo erklären: Ich habe da schonmal etwas vorbereitet…
+- Kurz die Magie der Demo erklären: Ich habe da schonmal was vorbereitet…
 - **Überleitung:** Schauen wir uns die Projektstruktur an – die Tool-Klasse `ChartTools` ist noch leer, wir füllen sie gleich live.
 -->
 
@@ -579,27 +589,36 @@ title: "Project Structure"
 layout: blank
 showFor: live
 title: "ChartTools.cs"
+obsScene: Scene5
+obsSceneDelay: 10s
 ---
 
 > // ChartTools.cs
 
 <MonacoSync />
+
 ```csharp {monaco}  {height:'460px'}
 using ModelContextProtocol.Server;
 using StarAgent.McpServer.Shared.Models;
 using StarAgent.McpServer.Shared.Services;
 using System.ComponentModel;
 
-[McpServerToolType]
 public static class ChartTools
 {
-
+    public static ChartResult GetChartPosition(
+        string songTitle,
+        string artist,
+        string chart = "Billboard Hot 100")
+    {
+        return ChartDataService.Lookup(songTitle, artist, chart);
+    }
 }
 
 ```
 
 <!--
 ```
+    [McpServerToolType]
 
     [McpServerTool(Name = "get_chart_position")]
     [Description("Returns the chart position of a song on a given chart.")]
@@ -610,7 +629,6 @@ public static class ChartTools
     {
         return ChartDataService.Lookup(songTitle, artist, chart);
     }
-
 ```
 
 - Attribute-Ansatz betonen: Wer .NET kennt, fühlt sich sofort zu Hause. Kein Boilerplate, kein manuelles JSON-Parsing.
@@ -619,8 +637,8 @@ public static class ChartTools
 
 ---
 layout: blank
-hideFor: live
 title: "ChartTools.cs"
+obsScene: Scene5
 ---
 
 > // ChartTools.cs
@@ -631,6 +649,8 @@ title: "ChartTools.cs"
 ---
 layout: blank
 title: "MCP Apps: Chart Card"
+obsScene: Scene2
+obsSceneDelay: 10s
 ---
 
 # MCP Apps: Chart Card
@@ -698,6 +718,7 @@ transition: slide-up
 ---
 layout: section
 section: { title: Demo, duration: 7m }
+obsScene: Scene5
 ---
 
 # Demo
@@ -714,6 +735,8 @@ class: blank--fullscreen
 footer: false
 hideInToc: true
 title: "Demo: Tools"
+obsScene: Scene2
+obsSceneDelay: 50s
 ---
 
 <Asciinema src="assets/casts/mcp_tools.cast" />
@@ -734,6 +757,8 @@ class: blank--fullscreen
 footer: false
 hideInToc: true
 title: "Demo: MCP Apps"
+obsScene: Scene5
+obsSceneDelay: 15s
 ---
 
 <SlidevVideo autoplay autoreset="slide" poster="/assets/ChartCard.png">
@@ -755,7 +780,7 @@ title: "Demo: MCP Apps"
 
 > npx @modelcontextprotocol/inspector
 
-<img src="/assets/Inspector.png" alt="MCP Inspector" class = "h-100">
+<img src="/assets/Inspector.png" alt="MCP Inspector" class = "h-80">
 
 <!--
 - Features:
@@ -818,6 +843,7 @@ await app.RunAsync("http://localhost:3001");
 
 ---
 hideInToc: true
+obsScene: Scene2
 ---
 
 # Register: HTTP
@@ -900,6 +926,7 @@ public ChartResult GetChartPosition([McpToolTrigger("get_chart_position", "Retur
 ---
 layout: section
 section: { title: Outlook, duration: 6m }
+obsScene: Scene5
 ---
 
 # Outlook
@@ -949,6 +976,7 @@ hideInToc: true
 
 ---
 hideInToc: true
+obsScene: Scene2
 ---
 
 # Discovery Models
@@ -1026,6 +1054,7 @@ layout: section
 hideInToc: true
 transition: slide-up
 section: { title: "Q&A", duration: 5m, buffer: true }
+obsScene: Scene3
 ---
 
 # Q&A
@@ -1046,13 +1075,6 @@ section: { title: "Bye", duration: 1m }
 -->
 
 ---
-layout: blank
-variant: dark
-class: blank--fullscreen
-footer: false
-hideFor: live
-hideInToc: true
-title: "Bonus"
+layout: intro
+obsScene: Scene1
 ---
-
-<Asciinema src="assets/casts/sw.cast"/>
